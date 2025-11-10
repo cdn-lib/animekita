@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="id" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <title>Stream Anime</title>
+    <style>
+        body {
+            padding-top: 56px; 
+            padding-bottom: 70px; 
+        }
+        nav.fixed-top {
+            z-index: 1030; 
+        }
+        footer.fixed-bottom {
+            z-index: 1030; 
+        }
+        .card-img-top {
+            height: 280px; 
+            object-fit: cover;
+            width: 100%;
+        }
+        .anime-card {
+            border: 0;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .anime-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--bs-box-shadow-lg) !important;
+        }
+        .nav-link .nav-label {
+            font-size: 0.75rem;
+        }
+        #stream-player-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+        }
+        #stream-player-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom fixed-top shadow-sm">
+        <div class="container">
+            <div class="d-flex align-items-center w-100">
+                <a class="back-btn btn fs-4 me-2" href="javascript:history.back()"><i class="bi bi-arrow-left"></i></a>
+                <img src="img/logo.png" alt="ANIMEKITA Logo" width="30" height="30" class="d-inline-block align-text-top me-2">
+                <span id="episode-title-nav" class="fw-bold text-truncate fs-5 flex-grow-1" style="min-width: 0;">Memuat Episode...</span>
+            </div>
+        </div>
+    </nav>
+    
+   
+    
+    <div id="pageContent" class="pt-4 mt-3 mb-5">
+        <div class="container mt-4">
+            <div id="stream-wrapper">
+                
+                <div id="loading" class="text-center p-5">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 fs-5">Memuat Stream Episode...</p>
+                </div>
+                
+                <div id="stream-player-container" class="rounded shadow-sm" style="display: none;">
+                    <iframe id="stream-frame" src="" frameborder="0" allow="encrypted-media" allowfullscreen></iframe>
+                </div>
+                
+                <div id="stream-nav" class="d-flex justify-content-center flex-wrap gap-2 mt-3" style="display: none;">
+                    <a href="#" id="prev-ep-btn" class="btn btn-outline-secondary disabled" data-slug="">&laquo; Ep. Sblmnya</a>
+                    <a href="#" id="next-ep-btn" class="btn btn-primary disabled" data-slug="">Ep. Brktnya &raquo;</a>
+                </div>
+
+                <div id="error-message" class="alert alert-danger mt-3" style="display:none; padding: 1.5rem;">
+                    Gagal memuat stream episode. Silakan coba episode lain.
+                </div>
+            </div>
+
+            <section id="anime-info" class="mt-5" style="display: none;">
+                <h2 class="mb-3 border-bottom pb-2"><i class="bi bi-book"></i> Detail Anime</h2>
+                <div id="anime-detail-content" class="d-flex mb-4">
+                    <img id="detail-poster" src="placeholder.jpg" alt="Poster Anime" class="me-3 rounded shadow-sm" style="width: 120px; height: 180px; object-fit: cover;">
+                    <div class="flex-grow-1">
+                        <h4 id="detail-anime-title" class="fw-bold"></h4>
+                        <p id="anime-synopsis" class="small text-body-secondary" style="text-align: justify;"></p>
+                    </div>
+                </div>
+            </section>
+            
+            <hr class="my-4" id="detail-divider" style="display: none;">
+
+            <section id="episode-section" class="mt-5" style="display: none;">
+                <h2 class="mb-3 border-bottom pb-2"><i class="bi bi-list-ol"></i> Daftar Episode</h2>
+                <div id="episode-list">
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="unlimitedAnimeCanvas" aria-labelledby="unlimitedAnimeCanvasLabel">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title" id="unlimitedAnimeCanvasLabel">Daftar Anime Lengkap (A-Z)</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div id="filter-controls" class="mb-3 d-flex flex-wrap justify-content-center gap-1"></div>
+            <div id="unlimited-loading" class="text-center p-5">
+                <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+                <p class="mt-3">Memuat daftar lengkap...</p>
+            </div>
+            <div id="unlimited-content"></div>
+        </div>
+    </div>
+    
+    <footer class="py-2 mt-1 fixed-bottom bg-body-tertiary border-top">
+        <div class="container-fluid d-flex justify-content-around align-items-center">
+            
+            <a href="index.html" class="nav-link text-center active" style="flex: 1;">
+                <i class="bi bi-house-fill fs-4"></i>
+                <div class="nav-label">Home</div>
+            </a>
+            
+            <a href="release.html" class="nav-link text-center" style="flex: 1;">
+                <i class="bi bi-calendar-event fs-4"></i>
+                <div class="nav-label">Jadwal</div>
+            </a>
+            
+            <a href="./semua.html" class="nav-link text-center" style="flex: 1;">
+                <i class="bi bi-grid-3x3-gap-fill fs-4"></i>
+                <div class="nav-label">Semua</div>
+            </a>
+            
+            <a onclick="dialog('Menu belum tersedia {lol}')" class="nav-link text-center" style="flex: 1;">
+                <i class="bi bi-bookmark fs-4"></i>
+                <div class="nav-label">Favorit</div>
+            </a>
+            
+            
+            
+            <a href="#" class="nav-link text-center" style="flex: 1;" data-bs-toggle="offcanvas" data-bs-target="#unlimitedAnimeCanvas" aria-controls="unlimitedAnimeCanvas">
+                <i class="bi bi-card-list fs-4"></i>
+                <div class="nav-label">Katalog</div>
+            </a>
+            
+        </div>
+    </footer>
+    <script src="lib/js/karakter-dialog.js"></script>
+    <script src="lib/js/map.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+       
+            const EPISODE_API_URL = 'https://www.sankavollerei.com/anime/episode/';
+            const ANIME_API_URL = 'https://www.sankavollerei.com/anime/anime/'; 
+            
+            const loading = document.getElementById('loading');
+            const streamPlayerContainer = document.getElementById('stream-player-container');
+            const streamFrame = document.getElementById('stream-frame');
+            const episodeTitleNav = document.getElementById('episode-title-nav');
+            const errorMessage = document.getElementById('error-message');
+            const episodeListContainer = document.getElementById('episode-list');
+            const episodeSection = document.getElementById('episode-section');
+            const animeInfoSection = document.getElementById('anime-info');
+            const detailPoster = document.getElementById('detail-poster');
+            const detailAnimeTitle = document.getElementById('detail-anime-title');
+            const animeSynopsis = document.getElementById('anime-synopsis');
+            const detailDivider = document.getElementById('detail-divider');
+            
+            const streamNav = document.getElementById('stream-nav');
+            const prevEpBtn = document.getElementById('prev-ep-btn');
+            const nextEpBtn = document.getElementById('next-ep-btn');
+                        
+            const params = new URLSearchParams(window.location.search);
+            const animeSlug = params.get('slug'); 
+            const initialEpSlug = params.get('eps');
+
+            if (!animeSlug || !initialEpSlug) {
+                loading.innerHTML = '<p class="text-danger">Slug Anime atau Episode tidak ditemukan!</p>';
+                loading.style.display = 'block';
+                return;
+            }
+            
+            async function initializePage() {
+                const epLoadPromise = loadEpisodeStream(initialEpSlug);
+                const detailLoadPromise = fetchAnimeDetails(animeSlug, initialEpSlug);
+                
+                try {
+                    await Promise.all([epLoadPromise, detailLoadPromise]);
+                } catch (error) {
+                    console.error('Inisialisasi halaman gagal:', error);
+                }
+            }
+
+            async function fetchAnimeDetails(animeSlug, currentEpSlug) {
+                 try {
+                    const response = await fetch(`${ANIME_API_URL}${animeSlug}`);
+                    if (!response.ok) throw new Error('Gagal memuat detail anime');
+                    const result = await response.json();
+
+                    if (result.status === 'success' && result.data) {
+                        
+                        const backBtn = document.querySelector('.back-btn');
+                        backBtn.href = `anime.html?slug=${animeSlug}`;
+                        
+                        
+                        detailAnimeTitle.textContent = result.data.title || 'Judul Tidak Diketahui';
+                        animeSynopsis.textContent = result.data.synopsis || 'Sinopsis tidak tersedia.';
+                        detailPoster.src = result.data.poster || 'placeholder.jpg';
+                        animeInfoSection.style.display = 'block';
+                        detailDivider.style.display = 'block';
+
+                        if (result.data.episode_lists) {
+                            renderEpisodeList(result.data.episode_lists, animeSlug, currentEpSlug);
+                        } else {
+                            throw new Error('Daftar episode tidak tersedia.');
+                        }
+
+                    } else {
+                        throw new Error('Format data detail anime tidak valid.');
+                    }
+                 } catch (error) {
+                    console.error('Error fetching anime details:', error);
+                    episodeSection.style.display = 'block';
+                    episodeListContainer.innerHTML = '<p class="text-muted mt-3">Daftar episode tidak dapat dimuat.</p>';
+                    throw error; 
+                 }
+            }
+
+            async function loadEpisodeStream(epSlug) {
+                loading.style.display = 'block';
+                streamPlayerContainer.style.display = 'none';
+                streamNav.style.display = 'none'; 
+                errorMessage.style.display = 'none';
+                
+                prevEpBtn.classList.add('disabled');
+                nextEpBtn.classList.add('disabled');
+
+                try {
+                    const response = await fetch(`${EPISODE_API_URL}${epSlug}`);
+                    if (!response.ok) throw new Error('Gagal memuat episode');
+                    const result = await response.json();
+
+                    if (result.status === 'success' && result.data) {
+                        
+                        streamFrame.src = result.data.stream_url;
+                        episodeTitleNav.textContent = result.data.episode_name || `${animeSlug}`;
+
+                        if (result.data.has_previous_episode) {
+                            const prevSlug = result.data.previous_episode.slug;
+                            prevEpBtn.classList.remove('disabled');
+                            prevEpBtn.href = `stream.html?slug=${animeSlug}&eps=${prevSlug}`;
+                        } else {
+                             prevEpBtn.classList.add('disabled');
+                             prevEpBtn.href = '#';
+                        }
+                        
+                        if (result.data.has_next_episode) {
+                            const nextSlug = result.data.next_episode.slug;
+                            nextEpBtn.classList.remove('disabled');
+                            nextEpBtn.href = `stream.html?slug=${animeSlug}&eps=${nextSlug}`;
+                        } else {
+                            nextEpBtn.classList.add('disabled');
+                            nextEpBtn.href = '#';
+                        }
+                        streamNav.style.display = 'flex';
+
+                        loading.style.display = 'none';
+                        streamPlayerContainer.style.display = 'block';
+                        
+                    } else {
+                        throw new Error('Format data episode salah');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    loading.style.display = 'none';
+                    errorMessage.style.display = 'block';
+                    streamNav.style.display = 'flex'; 
+                    throw error; 
+                }
+            }
+
+            function renderEpisodeList(episodes, animeSlug, activeEpSlug) {
+                episodeListContainer.innerHTML = '';
+                episodeSection.style.display = 'block';
+                
+                const row = document.createElement('div');
+                row.className = 'row row-cols-3 g-2'; 
+
+                episodes.forEach((ep, index) => {
+                    const col = document.createElement('div');
+                    col.className = 'col';
+
+                    const a = document.createElement('a');
+                    const episodeNumber = `Eps ${index + 1}`;
+                    
+                    a.className = `btn btn-sm w-100 ${ep.slug === activeEpSlug ? 'btn-primary' : 'btn-outline-secondary'}`;
+                    a.href = `stream.html?slug=${animeSlug}&eps=${ep.slug}`;
+                    a.textContent = episodeNumber;
+                    
+                    col.appendChild(a);
+                    row.appendChild(col);
+                });
+                
+                episodeListContainer.appendChild(row);
+            }
+
+            prevEpBtn.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('disabled')) {
+                    e.preventDefault();
+                    window.location.href = prevEpBtn.href;
+                }
+            });
+            
+            nextEpBtn.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('disabled')) {
+                    e.preventDefault();
+                    window.location.href = nextEpBtn.href;
+                }
+            });
+
+            initializePage();
+
+            const unlimitedLoading = document.getElementById('unlimited-loading');
+            const unlimitedContent = document.getElementById('unlimited-content');
+            const filterControls = document.getElementById('filter-controls');
+            const UNLIMITED_API_URL = 'https://www.sankavollerei.com/anime/unlimited';
+            let isUnlimitedLoaded = false;
+            let unlimitedData = [];
+            const alphabet = ['#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+
+            function setupFilterButtons() {
+                filterControls.innerHTML = '';
+                const allBtn = document.createElement('button');
+                allBtn.className = 'btn btn-sm btn-primary filter-az-btn active';
+                allBtn.textContent = 'ALL';
+                allBtn.dataset.filter = 'ALL';
+                allBtn.addEventListener('click', handleFilterClick);
+                filterControls.appendChild(allBtn);
+
+                alphabet.forEach(letter => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn btn-sm btn-outline-primary filter-az-btn';
+                    btn.textContent = letter;
+                    btn.dataset.filter = letter;
+                    btn.addEventListener('click', handleFilterClick);
+                    filterControls.appendChild(btn);
+                });
+            }
+            
+            function handleFilterClick(e) {
+                const filter = e.target.dataset.filter;
+                document.querySelectorAll('.filter-az-btn').forEach(btn => {
+                    btn.classList.remove('active', 'btn-primary');
+                    btn.classList.add('btn-outline-primary');
+                });
+                e.target.classList.remove('btn-outline-primary');
+                e.target.classList.add('active', 'btn-primary');
+                renderUnlimitedList(unlimitedData, filter);
+            }
+
+            async function fetchUnlimitedAnime() {
+                if (isUnlimitedLoaded) {
+                    unlimitedLoading.style.display = 'none';
+                    return;
+                }
+                unlimitedLoading.style.display = 'block';
+                unlimitedContent.innerHTML = '';
+                try {
+                    const response = await fetch(UNLIMITED_API_URL);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const data = await response.json();
+                    if (data.status === 'success' && data.data && data.data.list) {
+                        unlimitedData = data.data.list;
+                        setupFilterButtons();
+                        renderUnlimitedList(unlimitedData, 'ALL');
+                        isUnlimitedLoaded = true;
+                        unlimitedLoading.style.display = 'none';
+                    } else {
+                        throw new Error('Format data tidak sesuai.');
+                    }
+                } catch (error) {
+                    console.error('Gagal mengambil data unlimited:', error);
+                    unlimitedLoading.innerHTML = '<p class="text-danger">Gagal memuat daftar anime lengkap.</p>';
+                }
+            }
+
+            function renderUnlimitedList(listArray, filter) {
+                unlimitedContent.innerHTML = '';
+                let html = '';
+                listArray.forEach(group => {
+                    const startLetter = group.startWith.toUpperCase();
+                    if (filter === 'ALL' || filter === startLetter) {
+                        html += `<div data-start="${startLetter}">`;
+                        html += `<h4 class="mt-4 mb-2 fs-5 text-primary">${group.startWith}</h4>`;
+                        html += `<div class="list-group list-group-flush mb-3">`;
+                        group.animeList.forEach(anime => {
+                            const slug = anime.href.split('/').pop() || anime.animeId;
+                            html += `<a href="anime.html?slug=${slug}" class="list-group-item list-group-item-action">${anime.title}</a>`;
+                        });
+                        html += `</div></div>`;
+                    }
+                });
+                if (!html) {
+                    html = '<p class="text-center text-muted mt-5">Tidak ada anime yang dimulai dengan huruf ini.</p>';
+                }
+                unlimitedContent.innerHTML = html;
+            }
+            
+            const unlimitedCanvas = document.getElementById('unlimitedAnimeCanvas');
+            unlimitedCanvas.addEventListener('show.bs.offcanvas', fetchUnlimitedAnime);
+        });
+    </script>
+</body>
+</html>

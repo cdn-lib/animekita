@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="id" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+    <title>Jadwal Rilis Anime</title>
+    <style>
+        body {
+            padding-top: 56px; 
+            padding-bottom: 70px; 
+        }
+        nav.fixed-top {
+            z-index: 1030; 
+        }
+        footer.fixed-bottom {
+            z-index: 1030; 
+        }
+        .card-img-top {
+            height: 280px; 
+            object-fit: cover;
+            width: 100%;
+        }
+        .anime-card {
+            border: 0;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .anime-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--bs-box-shadow-lg) !important;
+        }
+        .nav-link .nav-label {
+            font-size: 0.75rem;
+        }
+
+        .rec-container {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 10px;
+            display: flex;
+        }
+        .rec-item {
+            flex: 0 0 140px; 
+            width: 140px;
+            margin-right: 10px;
+            text-decoration: none;
+        }
+        .rec-item .card-img-top {
+            height: 140px;
+            width: 140px;
+        }
+        .rec-item .card-title {
+            font-size: 0.85rem;
+            white-space: normal;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            height: 2.4em;
+        }
+.custom-animekita-logo {
+font-family: 'Kalam', cursive;
+            font-weight: 700;
+            display: flex; 
+            align-items: center; 
+        }
+
+        .custom-animekita-logo span {
+            -webkit-text-stroke: 1px white; 
+            text-stroke: 1px white;
+            line-height: 1; 
+        }
+
+        .custom-animekita-logo span:nth-child(1), /* A */
+        .custom-animekita-logo span:nth-child(2), /* N */
+        .custom-animekita-logo span:nth-child(3) /* I */ {
+            color: #ADD8E6; /* Biru Pastel */
+        }
+
+        .custom-animekita-logo span:nth-child(4), /* M */
+        .custom-animekita-logo span:nth-child(5) /* E */ {
+            color: #FDFD96; /* Kuning/Krem Pastel */
+        }
+
+        .custom-animekita-logo span:nth-child(6), /* K */
+        .custom-animekita-logo span:nth-child(7) /* I */ {
+            color: #FFB6C1; /* Pink Pastel */
+        }
+
+        .custom-animekita-logo span:nth-child(8), /* T */
+        .custom-animekita-logo span:nth-child(9) /* A */ {
+            color: #ADD8E6; /* Biru Pastel lagi */
+        }
+        
+        .custom-animekita-logo .sakura {
+             -webkit-text-stroke: 0; 
+             text-stroke: 0;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom fixed-top shadow-sm">
+    <div class="container">
+        <a class="navbar-brand custom-animekita-logo" href="index.html">
+            <img src="img/logo.png" alt="ANIMEKITA Logo" width="30" height="30" class="d-inline-block align-text-top me-2">
+            <span>A</span><span>N</span><span>I</span><span>M</span><span>E</span><span>K</span><span>I</span><span>T</span><span>A</span>
+            <span class="sakura"></span>
+        </a>
+
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+                <a onclick="dialog('Menu belum tersedia {lol}')" class="nav-link text-center">
+                    <i class="bi bi-clock-history fs-5"></i>
+                </a>
+            </li>
+        </ul>
+        
+    </div>
+</nav>
+
+
+    <div id="pageContent" class="pt-4 mt-3">
+        <div class="container mt-4">
+            
+            <h1 class="display-6 fw-bold mb-4 border-bottom pb-2"><i class="bi bi-calendar-week"></i> Jadwal Rilis</h1>
+            
+            <div id="loading" class="text-center p-5">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 fs-5">Memuat Jadwal Rilis...</p>
+            </div>
+
+            <section id="today-recommendation-section" class="mb-4" style="display: none;">
+                <h2 class="mb-3 border-bottom pb-2"><i class="bi bi-fire"></i> Rekomendasi Hari Ini</h2>
+                <div class="rec-container" id="today-recommendation-list">
+                </div>
+            </section>
+            
+            <hr class="my-4" id="rec-divider" style="display: none;">
+
+            <div id="schedule-container" style="display: none;">
+            </div>
+
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="unlimitedAnimeCanvas" aria-labelledby="unlimitedAnimeCanvasLabel">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title" id="unlimitedAnimeCanvasLabel">Daftar Anime Lengkap (A-Z)</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div id="filter-controls" class="mb-3 d-flex flex-wrap justify-content-center gap-1"></div>
+            <div id="unlimited-loading" class="text-center p-5">
+                <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+                <p class="mt-3">Memuat daftar lengkap...</p>
+            </div>
+            <div id="unlimited-content"></div>
+        </div>
+    </div>
+    
+    <footer class="py-2 mt-1 fixed-bottom bg-body-tertiary border-top">
+        <div class="container-fluid d-flex justify-content-around align-items-center">
+            
+            <a href="index.html" class="nav-link text-center active" style="flex: 1;">
+                <i class="bi bi-house-fill fs-4"></i>
+                <div class="nav-label">Home</div>
+            </a>
+            
+            <a href="release.html" class="nav-link text-center" style="flex: 1;">
+                <i class="bi bi-calendar-event fs-4"></i>
+                <div class="nav-label">Jadwal</div>
+            </a>
+            
+            <a href="./semua.html" class="nav-link text-center" style="flex: 1;">
+                <i class="bi bi-grid-3x3-gap-fill fs-4"></i>
+                <div class="nav-label">Semua</div>
+            </a>
+            
+            <a onclick="dialog('Menu belum tersedia {lol}')" class="nav-link text-center" style="flex: 1;">
+                <i class="bi bi-bookmark fs-4"></i>
+                <div class="nav-label">Favorit</div>
+            </a>
+            
+            
+            
+            <a href="#" class="nav-link text-center" style="flex: 1;" data-bs-toggle="offcanvas" data-bs-target="#unlimitedAnimeCanvas" aria-controls="unlimitedAnimeCanvas">
+                <i class="bi bi-card-list fs-4"></i>
+                <div class="nav-label">Katalog</div>
+            </a>
+            
+        </div>
+    </footer>
+    <script src="lib/js/karakter-dialog.js"></script>
+    <script src="lib/js/map.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+<script>
+    const API_URL = 'https://www.sankavollerei.com/anime/schedule';
+    const ID_DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+    function getTodayIdDay() {
+        const date = new Date();
+        const dayIndex = date.getDay();
+        return ID_DAYS[dayIndex];
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const loading = document.getElementById('loading');
+        const scheduleContainer = document.getElementById('schedule-container');
+        const todayRecList = document.getElementById('today-recommendation-list');
+        const todayRecSection = document.getElementById('today-recommendation-section');
+        const recDivider = document.getElementById('rec-divider');
+        const todayIdDay = getTodayIdDay();
+
+        async function fetchSchedule() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const result = await response.json();
+
+                if (result.status === 'success' && result.data) {
+                    const todaySchedule = result.data.find(schedule => schedule.day === todayIdDay);
+                    
+                    if (todaySchedule && todaySchedule.anime_list.length > 0) {
+                        renderTodayRecommendation(todaySchedule.anime_list);
+                        todayRecSection.style.display = 'block';
+                        recDivider.style.display = 'block';
+                    }
+                    
+                    renderSchedule(result.data);
+                    loading.style.display = 'none';
+                    scheduleContainer.style.display = 'block';
+                } else {
+                    throw new Error('Format data tidak sesuai.');
+                }
+
+            } catch (error) {
+                console.error('Gagal mengambil data jadwal:', error);
+                loading.innerHTML = '<p class="text-danger">Gagal memuat jadwal rilis anime.</p>';
+            }
+        }
+
+        function renderTodayRecommendation(animeList) {
+            let html = '';
+            animeList.forEach(anime => {
+                const slug = anime.slug;
+                const title = anime.anime_name;
+                const poster = anime.poster || 'placeholder.jpg';
+
+                html += `
+                    <a href="anime.html?slug=${slug}" class="rec-item">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <img src="${poster}" class="card-img-top rounded-top" alt="${title}">
+                            <div class="p-2">
+                                <h6 class="card-title text-truncate fw-bold mb-0">${title}</h6>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            });
+            todayRecList.innerHTML = html;
+        }
+
+        function renderSchedule(data) {
+            scheduleContainer.innerHTML = '';
+            
+            data.forEach(daySchedule => {
+                let sectionHtml = '';
+                const isToday = daySchedule.day === todayIdDay;
+                const todayTag = isToday ? '<span class="badge bg-primary-subtle text-primary-emphasis ms-2">Hari Ini</span>' : '';
+
+                sectionHtml += `<h2 class="h4 fw-bold mt-4"><i class="bi bi-calendar-event"></i> ${daySchedule.day} ${todayTag}</h2>`;
+                sectionHtml += `<div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3 mt-1 mb-4">`;
+                
+                if (!daySchedule.anime_list || daySchedule.anime_list.length === 0) {
+                    sectionHtml += `<div class="col-12"><p class="text-muted">Tidak ada jadwal rilis hari ${daySchedule.day}.</p></div>`;
+                } else {
+                    daySchedule.anime_list.forEach(anime => {
+                        const slug = anime.slug;
+                        const title = anime.anime_name;
+                        const poster = anime.poster || 'placeholder.jpg';
+
+                        sectionHtml += `
+                            <div class="col">
+                                <div class="card h-100 shadow-sm anime-card">
+                                    <img src="${poster}" class="card-img-top" alt="${title}">
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title fw-bold mb-0">${title}</h6>
+                                    </div>
+                                    <a href="anime.html?slug=${slug}" class="stretched-link"></a>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                sectionHtml += `</div>`;
+                scheduleContainer.innerHTML += sectionHtml;
+            });
+        }
+
+        fetchSchedule();
+
+        const unlimitedLoading = document.getElementById('unlimited-loading');
+        const unlimitedContent = document.getElementById('unlimited-content');
+        const filterControls = document.getElementById('filter-controls');
+        const UNLIMITED_API_URL = 'https://www.sankavollerei.com/anime/unlimited';
+        let isUnlimitedLoaded = false;
+        let unlimitedData = [];
+        const alphabet = ['#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+
+        function setupFilterButtons() {
+            filterControls.innerHTML = '';
+            const allBtn = document.createElement('button');
+            allBtn.className = 'btn btn-sm btn-primary filter-az-btn active';
+            allBtn.textContent = 'ALL';
+            allBtn.dataset.filter = 'ALL';
+            allBtn.addEventListener('click', handleFilterClick);
+            filterControls.appendChild(allBtn);
+
+            alphabet.forEach(letter => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-sm btn-outline-primary filter-az-btn';
+                btn.textContent = letter;
+                btn.dataset.filter = letter;
+                btn.addEventListener('click', handleFilterClick);
+                filterControls.appendChild(btn);
+            });
+        }
+        
+        function handleFilterClick(e) {
+            const filter = e.target.dataset.filter;
+            document.querySelectorAll('.filter-az-btn').forEach(btn => {
+                btn.classList.remove('active', 'btn-primary');
+                btn.classList.add('btn-outline-primary');
+            });
+            e.target.classList.remove('btn-outline-primary');
+            e.target.classList.add('active', 'btn-primary');
+            renderUnlimitedList(unlimitedData, filter);
+        }
+
+        async function fetchUnlimitedAnime() {
+            if (isUnlimitedLoaded) {
+                unlimitedLoading.style.display = 'none';
+                return;
+            }
+            unlimitedLoading.style.display = 'block';
+            unlimitedContent.innerHTML = '';
+            try {
+                const response = await fetch(UNLIMITED_API_URL);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                if (data.status === 'success' && data.data && data.data.list) {
+                    unlimitedData = data.data.list;
+                    setupFilterButtons();
+                    renderUnlimitedList(unlimitedData, 'ALL');
+                    isUnlimitedLoaded = true;
+                    unlimitedLoading.style.display = 'none';
+                } else {
+                    throw new Error('Format data tidak sesuai.');
+                }
+            } catch (error) {
+                console.error('Gagal mengambil data unlimited:', error);
+                unlimitedLoading.innerHTML = '<p class="text-danger">Gagal memuat daftar anime lengkap.</p>';
+            }
+        }
+
+        function renderUnlimitedList(listArray, filter) {
+            unlimitedContent.innerHTML = '';
+            let html = '';
+            listArray.forEach(group => {
+                const startLetter = group.startWith.toUpperCase();
+                if (filter === 'ALL' || filter === startLetter) {
+                    html += `<div data-start="${startLetter}">`;
+                    html += `<h4 class="mt-4 mb-2 fs-5 text-primary">${group.startWith}</h4>`;
+                    html += `<div class="list-group list-group-flush mb-3">`;
+                    group.animeList.forEach(anime => {
+                        const slug = anime.href.split('/').pop() || anime.animeId;
+                        html += `<a href="anime.html?slug=${slug}" class="list-group-item list-group-item-action">${anime.title}</a>`;
+                    });
+                    html += `</div></div>`;
+                }
+            });
+            if (!html) {
+                html = '<p class="text-center text-muted mt-5">Tidak ada anime yang dimulai dengan huruf ini.</p>';
+            }
+            unlimitedContent.innerHTML = html;
+        }
+        
+        const unlimitedCanvas = document.getElementById('unlimitedAnimeCanvas');
+        unlimitedCanvas.addEventListener('show.bs.offcanvas', fetchUnlimitedAnime);
+    });
+</script>
+</body>
+</html>
